@@ -12,6 +12,21 @@ namespace CustomerDatabaseProject.Services
 {
     public class ProductService
     {
+        public static async Task ViewProductAsync()
+        {
+            using var db = new ApplicationContext();
+
+            var products = await db.ProductViews.OrderByDescending(x => x.ProductId).ToListAsync();
+            Console.WriteLine("Product Summary View");
+            if (!products.Any())
+            {
+                Console.WriteLine("Empty");
+            }
+            foreach(var product in products)
+            {
+                Console.WriteLine($"{product.ProductId} - {product.ProductName} - {product.ProductsSold}");
+            }
+        }
         public static async Task ListProductsAsync()
         {
             using var db = new ApplicationContext();
@@ -32,32 +47,42 @@ namespace CustomerDatabaseProject.Services
         public static async Task AddProductAsync()
         {
             using var db = new ApplicationContext();
-
-            Console.Write("Product Name: ");
-            string productName = Console.ReadLine() ?? string.Empty;
-            if (string.IsNullOrEmpty(productName))
-            {
-                Console.WriteLine("Product name is required.");
-                return;
-            }
-
-            Console.Write("Price: ");
-            if (!decimal.TryParse(Console.ReadLine(), out var unitPrice))
-            {
-                Console.WriteLine("Invalid Input. Please try again, with numbers.");
-                return;
-            }
-
-            await db.Products.AddAsync(new Product { ProductName = productName, UnitPrice = unitPrice });
-
+            await using var transaction = db.Database.BeginTransaction();
             try
             {
-                await db.SaveChangesAsync();
-                Console.WriteLine("Product Added.");
+                Console.Write("Product Name: ");
+                string productName = Console.ReadLine() ?? string.Empty;
+                if (string.IsNullOrEmpty(productName))
+                {
+                    Console.WriteLine("Product name is required.");
+                    return;
+                }
+
+                Console.Write("Price: ");
+                if (!decimal.TryParse(Console.ReadLine(), out var unitPrice))
+                {
+                    Console.WriteLine("Invalid Input. Please try again, with numbers.");
+                    return;
+                }
+
+                await db.Products.AddAsync(new Product { ProductName = productName, UnitPrice = unitPrice });
+
+                try
+                {
+                    await db.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    Console.WriteLine("Product Added.");
+                }
+                catch (DbUpdateException exception)
+                {
+                    Console.WriteLine(exception.Message);
+                }
             }
             catch (DbUpdateException exception)
             {
                 Console.WriteLine(exception.Message);
+                await transaction.RollbackAsync();
             }
         }
         public static async Task EditProductAsync(int productId)

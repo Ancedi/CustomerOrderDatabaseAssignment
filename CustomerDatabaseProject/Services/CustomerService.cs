@@ -14,6 +14,21 @@ namespace CustomerDatabaseProject.Services
     public class CustomerService
     {
         
+        public static async Task ViewCustomerAsync()
+        {
+            using var db = new ApplicationContext();
+            var customers = await db.CustomerViews.OrderByDescending(x => x.CustomerId).ToListAsync();
+            Console.WriteLine("Customer Summary View");
+            if (!customers.Any())
+            {
+                Console.WriteLine("Empty");
+            }
+            foreach(var customer in customers)
+            {
+                Console.WriteLine($"{customer.CustomerId} - {customer.CustomerName} - {customer.CustomerEmail} - {customer.OrdersMade}");
+            }
+        }
+        
         //SHOW CUSTOMERS IN DATABASE WITH LIST
         public static async Task ListCustomersAsync()
         {
@@ -36,62 +51,6 @@ namespace CustomerDatabaseProject.Services
                 Console.WriteLine($"{customer.CustomerId} | {customer.Name} | {customer.City} | {decryptedEmail} | {decryptedPassword}");
             }
         }
-
-        /*
-         * addOrderTransactionAsync
-         * using var db = new ApplicationContext();
-         * await using var transaction = await db.Database.BeginTransaction();
-         * try
-         * {
-         *  var customers = await db.AsNoTracking().OrderBy().ToListAsync()
-         *  if (!customers.Any()
-         *  {
-         *  foreach
-         *  {
-         *  console.writeline customer id
-         *  if try parse consolereadline customerId
-         *  {
-         *  var product = await db.product.asnotracking...
-         *  if (!product.any
-         *  {
-         *  var productlook = products.ToDictionary(p => p.ProductId, p => p);
-         *  var order = new order
-         *  {
-         *  customerid,orderdate,status,totalamount
-         *  
-         *  while true
-         *  {
-         *  console write add order
-         *  var answer = console wrteline string empty
-         *  if answer tolower != y break;
-         *  foreach var product in products
-         *  {
-         *  console wrltline product.name product.productid
-         *  
-         *  console wrtline product id
-         *  if !int try parse console.realdine out  war productid
-         *  console wrtline quantity
-         *  if !int try parse console readline out var quantity
-         *  {
-         *  
-         *  var row = new orderrorw();
-         *  {
-         *  productid,quantity,unitprice
-         *  
-         *  order orderrow add row
-         *  order.orderrows = orderrows;
-         *  order.totalamount = orderrows.sum();
-         *  db.orders.add order
-         *  await db savechangesasync
-         *  throw new exception simulated error
-         *  await transaction.commitasync
-         * }
-         * 
-         * catch
-         * {
-         * await transaction.rolback async
-         * 
-         */
 
         //ADD CUSTOMER TO DATABASE
         public static async Task AddCustomerAsync()
@@ -147,14 +106,14 @@ namespace CustomerDatabaseProject.Services
                 try
                 {
                     await db.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
                     Console.WriteLine("Customer Added.");
                 }
                 catch (DbUpdateException exception)
                 {
                     Console.WriteLine(exception.Message);
                 }
-                await transaction.CommitAsync();
-
             }
             catch (DbUpdateException exception)
             {
