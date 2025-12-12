@@ -1,6 +1,6 @@
 # CustomerOrderDatabaseAssignment
 
-Notera: View har inte decrypterar inte säkrad information.
+Notera: View decrypterar inte säkrad information.
 
 När programmet startar presenteras användaren med en meny som består av 4 numrerade val.
 Customer, Order, Product, och Exit.
